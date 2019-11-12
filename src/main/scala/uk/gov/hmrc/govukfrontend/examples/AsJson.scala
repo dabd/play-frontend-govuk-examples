@@ -33,4 +33,5 @@ object AsJson {
     val json = engine.eval(s"""JSON.stringify($jsonStr)""")
     Json.parse(json.toString)
   }
+
 }

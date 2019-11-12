@@ -30,15 +30,15 @@ sealed trait NunjucksTemplateBody
 
 case class MacroCall(macroName: String, args: Any) extends NunjucksTemplateBody
 case class TemplateHtml(content: Html) extends NunjucksTemplateBody
-case class WhiteSpace(ws: String) extends NunjucksTemplateBody
 
 object NunjucksParser {
 
-  def nunjucksParser[_: P] = P(imports ~ ws ~ templateBody ~ End).map {
-    case (imports, templateBody) => NunjucksTemplate(imports = imports.toList, body = templateBody.toList)
+  def nunjucksParser[_: P]: P[NunjucksTemplate] = P(imports ~ ws ~ templateBody ~ End).map {
+    case (imports, templateBody) =>
+      NunjucksTemplate(imports = imports.toList, body = templateBody.toList)
   }
 
-  def ws[_: P] = P(CharsWhileIn(" \r\n", 0))
+  def ws[_: P]: P[Unit] = P(CharsWhileIn(" \r\n", 0))
 
   def imports[_: P]: P[Seq[Import]] = P((importParser ~ ws).rep)
 
@@ -50,67 +50,67 @@ object NunjucksParser {
         Import(from = importStatement, macroName = macroName)
     }
 
-  def macroName[_: P] = P(("govuk" ~ (!"(" ~ AnyChar).rep).!)
+  def macroName[_: P]: P[String] = P(("govuk" ~ (!"(" ~ AnyChar).rep).!)
 
   def macroCall[_: P]: P[MacroCall] =
     P(ws ~ "{{" ~ ws ~ macroName ~ "(" ~ ("{" ~ ws ~ (!"})" ~ AnyChar).rep ~ ws ~ "}").! ~ ")" ~ ws ~ "}}").map {
-      case (m @ "govukAccordion", args) =>
+      case (m@"govukAccordion", args) =>
         jsonToMacroCall[Accordion](m, args)
-      case (m @ "govukBackLink", args) =>
+      case (m@"govukBackLink", args) =>
         jsonToMacroCall[BackLink](m, args)
-      case (m @ "govukBreadcrumbs", args) =>
+      case (m@"govukBreadcrumbs", args) =>
         jsonToMacroCall[Breadcrumbs](m, args)
-      case (m @ "govukButton", args) =>
+      case (m@"govukButton", args) =>
         jsonToMacroCall[Button](m, args)
-      case (m @ "govukCharacterCount", args) =>
+      case (m@"govukCharacterCount", args) =>
         jsonToMacroCall[CharacterCount](m, args)
-      case (m @ "govukCheckboxes", args) =>
+      case (m@"govukCheckboxes", args) =>
         jsonToMacroCall[Checkboxes](m, args)
-      case (m @ "govukDateInput", args) =>
+      case (m@"govukDateInput", args) =>
         jsonToMacroCall[DateInput](m, args)
-      case (m @ "govukDetails", args) =>
+      case (m@"govukDetails", args) =>
         jsonToMacroCall[Details](m, args)
-      case (m @ "govukErrorMessage", args) =>
+      case (m@"govukErrorMessage", args) =>
         jsonToMacroCall[ErrorMessage](m, args)
-      case (m @ "govukErrorSummary", args) =>
+      case (m@"govukErrorSummary", args) =>
         jsonToMacroCall[ErrorSummary](m, args)
-      case (m @ "govukFieldset", args) =>
+      case (m@"govukFieldset", args) =>
         jsonToMacroCall[Fieldset](m, args)
-      case (m @ "govukFileUpload", args) =>
+      case (m@"govukFileUpload", args) =>
         jsonToMacroCall[FileUpload](m, args)
-      case (m @ "govukFooter", args) =>
+      case (m@"govukFooter", args) =>
         jsonToMacroCall[Footer](m, args)
-      case (m @ "govukHeader", args) =>
+      case (m@"govukHeader", args) =>
         jsonToMacroCall[Header](m, args)
-      case (m @ "govukHint", args) =>
+      case (m@"govukHint", args) =>
         jsonToMacroCall[Hint](m, args)
-      case (m @ "govukInput", args) =>
+      case (m@"govukInput", args) =>
         jsonToMacroCall[Input](m, args)
-      case (m @ "govukInsetText", args) =>
+      case (m@"govukInsetText", args) =>
         jsonToMacroCall[InsetText](m, args)
-      case (m @ "govukLabel", args) =>
+      case (m@"govukLabel", args) =>
         jsonToMacroCall[Label](m, args)
-      case (m @ "govukPanel", args) =>
+      case (m@"govukPanel", args) =>
         jsonToMacroCall[Panel](m, args)
-      case (m @ "govukPhaseBanner", args) =>
+      case (m@"govukPhaseBanner", args) =>
         jsonToMacroCall[PhaseBanner](m, args)
-      case (m @ "govukRadios", args) =>
+      case (m@"govukRadios", args) =>
         jsonToMacroCall[Radios](m, args)
-      case (m @ "govukSelect", args) =>
+      case (m@"govukSelect", args) =>
         jsonToMacroCall[Select](m, args)
-      case (m @ "govukSkipLink", args) =>
+      case (m@"govukSkipLink", args) =>
         jsonToMacroCall[SkipLink](m, args)
-      case (m @ "govukSummaryList", args) =>
+      case (m@"govukSummaryList", args) =>
         jsonToMacroCall[SummaryList](m, args)
-      case (m @ "govukTable", args) =>
+      case (m@"govukTable", args) =>
         jsonToMacroCall[Table](m, args)
-      case (m @ "govukTabs", args) =>
+      case (m@"govukTabs", args) =>
         jsonToMacroCall[Tabs](m, args)
-      case (m @ "govukTag", args) =>
+      case (m@"govukTag", args) =>
         jsonToMacroCall[Tag](m, args)
-      case (m @ "govukTextarea", args) =>
+      case (m@"govukTextarea", args) =>
         jsonToMacroCall[Textarea](m, args)
-      case (m @ "govukWarningText", args) =>
+      case (m@"govukWarningText", args) =>
         jsonToMacroCall[WarningText](m, args)
     }
 
@@ -119,7 +119,25 @@ object NunjucksParser {
     MacroCall(macroName = macroName, args = templateParams)
   }
 
-  def templateBody[_: P]: P[Seq[NunjucksTemplateBody]] =
-    P(macroCall.rep)
+  def html[_: P]: P[TemplateHtml] =
+    P(!"{{" ~ AnyChar).rep.!.map(html => TemplateHtml(Html(html)))
 
+  def templateBody[_: P]: P[Seq[NunjucksTemplateBody]] =
+    P((macroCall | html).rep)
 }
+
+//object Parser {
+//
+//  def ws[_: P]: P[Unit] = P(CharsWhileIn(" \r\n", 0))
+//
+//  def abc[_: P] =
+//    P("abc" ~ ws)
+//
+//  def any[_: P] =
+//    P("xyz" ~ AnyChar.rep ~ ws)
+//
+//  def p[_: P] =
+//    P(ws ~ (abc.log | any).rep ~ End)
+//
+//}
+

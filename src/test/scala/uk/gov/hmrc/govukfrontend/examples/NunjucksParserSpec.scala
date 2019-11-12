@@ -488,4 +488,23 @@ class NunjucksParserSpec extends WordSpec with Matchers {
     }
   }
 
+//  import Parser._
+  //
+  //  "parser" should {
+  //    "work" in {
+  //      val s =
+  //        """
+  //          |abc
+  //          |abc
+  //          |
+  //          |xyz
+  //          |""".stripMargin
+  //
+  //
+  //      fastparse.parse(s, p(_)) shouldBe Success(
+  //        (), 0
+  //      )
+  //    }
+  //  }
+
 }
